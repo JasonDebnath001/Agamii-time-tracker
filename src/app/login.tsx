@@ -1,3 +1,5 @@
+import { supabase } from "@/lib/supabase";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -9,8 +11,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { router } from "expo-router";
-import { supabase } from "@/lib/supabase";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -31,19 +31,23 @@ export default function LoginScreen() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
 
-    setLoading(false);
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
 
-    if (error) {
-      setErrorMessage(error.message);
-      return;
+      router.replace("/employee");
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
     }
-
-    router.replace("/employee");
   }
 
   return (
